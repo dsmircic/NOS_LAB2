@@ -349,6 +349,7 @@ static long control_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	if (kfifo_len(fifo_in) > 0 && kfifo_avail(fifo_out) > 0)
 	{
 		int i;
+		printk("Moving %d characters - started...\n", cmd);
 		for (i = 0; i < cmd; i++)
 		{
 			got = kfifo_get(fifo_in, &c);
@@ -368,12 +369,15 @@ static long control_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 				klog(KERN_WARNING, "kfifo_get failed\n");
 			}
 		}
+
+		printk("Moving %d characters - finished\n", cmd);
 	}
 	else
 	{
-		LOG("timer: nothing in input buffer");
+		LOG("ioctl: nothing in input buffer");
 		// for test: put '#' in output buffer
-		got = kfifo_put(fifo_out, '#');
+		printk("Ending ioctl...\n");
+		retval = 0;
 	}
 
 	dump_buffer("ioctl-end:in_buff", in_buff);
