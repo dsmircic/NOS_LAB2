@@ -1,14 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 char generate_random_char();
 
 int main(void)
 {
-
     char device_name[] = "/dev/shofer_in";
-    int device = open(device_name, 1);
+    int device = open(device_name, O_WRONLY);
 
     if (device < 0)
     {
