@@ -34,14 +34,15 @@ MODULE_PARM_DESC(buffer_size, "Buffer size in bytes, must be a power of 2");
 MODULE_AUTHOR(AUTHOR);
 MODULE_LICENSE(LICENSE);
 
-struct shofer_dev *input_dev = NULL; /* gets data from user into in_buff */
+struct shofer_dev *input_dev = NULL;   /* gets data from user into in_buff */
 struct shofer_dev *control_dev = NULL; /* gets commands from user via ioctl */
-struct shofer_dev *output_dev = NULL; /* gets data from in_buff to user */
+struct shofer_dev *output_dev = NULL;  /* gets data from in_buff to user */
 struct buffer *in_buff = NULL, *out_buff = NULL;
 static dev_t dev_no = 0;
 
 /* just for passing arguments to timer */
-static struct shofer_timer {
+static struct shofer_timer
+{
 	struct timer_list timer;
 	struct buffer *in_buff;
 	struct buffer *out_buff;
@@ -51,7 +52,7 @@ static struct shofer_timer {
 static struct buffer *buffer_create(size_t, int *);
 static void buffer_delete(struct buffer *);
 static struct shofer_dev *shofer_create(dev_t, struct file_operations *,
-	struct buffer *, struct buffer *, int *);
+										struct buffer *, struct buffer *, int *);
 static void shofer_delete(struct shofer_dev *);
 static void cleanup(void);
 static void dump_buffer(char *prefix, struct buffer *b);
@@ -61,25 +62,22 @@ static int shofer_open_read(struct inode *inode, struct file *filp);
 static int shofer_open_write(struct inode *inode, struct file *filp);
 static ssize_t shofer_read(struct file *, char __user *, size_t, loff_t *);
 static ssize_t shofer_write(struct file *, const char __user *, size_t, loff_t *);
-static long control_ioctl (struct file *, unsigned int, unsigned long);
+static long control_ioctl(struct file *, unsigned int, unsigned long);
 
 static struct file_operations input_fops = {
-	.owner =    THIS_MODULE,
-	.open =     shofer_open_write,
-	.write =    shofer_write
-};
+	.owner = THIS_MODULE,
+	.open = shofer_open_write,
+	.write = shofer_write};
 
 static struct file_operations output_fops = {
-	.owner =    THIS_MODULE,
-	.open =     shofer_open_read,
-	.read =     shofer_read
-};
+	.owner = THIS_MODULE,
+	.open = shofer_open_read,
+	.read = shofer_read};
 
 static struct file_operations control_fops = {
-	.owner =		THIS_MODULE,
-	.open =			shofer_open_read,
-	.unlocked_ioctl =	control_ioctl
-};
+	.owner = THIS_MODULE,
+	.open = shofer_open_read,
+	.unlocked_ioctl = control_ioctl};
 
 /* init module */
 static int __init shofer_module_init(void)
@@ -91,7 +89,8 @@ static int __init shofer_module_init(void)
 
 	/* get device number(s) */
 	retval = alloc_chrdev_region(&dev_no, 0, 3, DRIVER_NAME);
-	if (retval < 0) {
+	if (retval < 0)
+	{
 		klog(KERN_WARNING, "Can't get major device number");
 		return retval;
 	}
@@ -165,13 +164,15 @@ module_exit(shofer_module_exit);
 static struct buffer *buffer_create(size_t size, int *retval)
 {
 	struct buffer *buffer = kmalloc(sizeof(struct buffer) + size, GFP_KERNEL);
-	if (!buffer) {
+	if (!buffer)
+	{
 		*retval = -ENOMEM;
 		klog(KERN_WARNING, "kmalloc failed\n");
 		return NULL;
 	}
 	*retval = kfifo_init(&buffer->fifo, buffer + 1, size);
-	if (*retval) {
+	if (*retval)
+	{
 		kfree(buffer);
 		klog(KERN_WARNING, "kfifo_init failed\n");
 		return NULL;
@@ -201,11 +202,12 @@ static void dump_buffer(char *prefix, struct buffer *b)
 
 /* Create and initialize a single shofer_dev */
 static struct shofer_dev *shofer_create(dev_t dev_no,
-	struct file_operations *fops, struct buffer *in_buff,
-	struct buffer *out_buff, int *retval)
+										struct file_operations *fops, struct buffer *in_buff,
+										struct buffer *out_buff, int *retval)
 {
 	struct shofer_dev *shofer = kmalloc(sizeof(struct shofer_dev), GFP_KERNEL);
-	if (!shofer){
+	if (!shofer)
+	{
 		*retval = -ENOMEM;
 		klog(KERN_WARNING, "kmalloc failed\n");
 		return NULL;
@@ -217,9 +219,10 @@ static struct shofer_dev *shofer_create(dev_t dev_no,
 	cdev_init(&shofer->cdev, fops);
 	shofer->cdev.owner = THIS_MODULE;
 	shofer->cdev.ops = fops;
-	*retval = cdev_add (&shofer->cdev, dev_no, 1);
+	*retval = cdev_add(&shofer->cdev, dev_no, 1);
 	shofer->dev_no = dev_no;
-	if (*retval) {
+	if (*retval)
+	{
 		klog(KERN_WARNING, "Error (%d) when adding device", *retval);
 		kfree(shofer);
 		shofer = NULL;
@@ -242,7 +245,7 @@ static int shofer_open_read(struct inode *inode, struct file *filp)
 	shofer = container_of(inode->i_cdev, struct shofer_dev, cdev);
 	filp->private_data = shofer;
 
-	if ( (filp->f_flags & O_ACCMODE) != O_RDONLY)
+	if ((filp->f_flags & O_ACCMODE) != O_RDONLY)
 		return -EPERM;
 
 	return 0;
@@ -258,16 +261,15 @@ static int shofer_open_write(struct inode *inode, struct file *filp)
 	shofer = container_of(inode->i_cdev, struct shofer_dev, cdev);
 	filp->private_data = shofer;
 
-	if ( (filp->f_flags & O_ACCMODE) != O_WRONLY)
+	if ((filp->f_flags & O_ACCMODE) != O_WRONLY)
 		return -EPERM;
-	
 
 	return 0;
 }
 
 /* output_dev only */
 static ssize_t shofer_read(struct file *filp, char __user *ubuf, size_t count,
-	loff_t *f_pos)
+						   loff_t *f_pos)
 {
 	ssize_t retval = 0;
 	struct shofer_dev *shofer = filp->private_data;
@@ -279,7 +281,7 @@ static ssize_t shofer_read(struct file *filp, char __user *ubuf, size_t count,
 
 	dump_buffer("out_dev-end:out_buff:", out_buff);
 
-	retval = kfifo_to_user(fifo, (char __user *) ubuf, count, &copied);
+	retval = kfifo_to_user(fifo, (char __user *)ubuf, count, &copied);
 	if (retval)
 		klog(KERN_WARNING, "kfifo_to_user failed\n");
 	else
@@ -294,7 +296,7 @@ static ssize_t shofer_read(struct file *filp, char __user *ubuf, size_t count,
 
 /* input_dev only */
 static ssize_t shofer_write(struct file *filp, const char __user *ubuf,
-	size_t count, loff_t *f_pos)
+							size_t count, loff_t *f_pos)
 {
 	/* todo (similar to read) */
 	ssize_t retval = 0;
@@ -304,18 +306,16 @@ static ssize_t shofer_write(struct file *filp, const char __user *ubuf,
 	unsigned int copied;
 
 	spin_lock(&in_buff->key);
-
-
 	dump_buffer("in_dev-end:in_buff:", in_buff);
 
 	// write to out_buff
-	retval = kfifo_from_user(fifo, (char __user *) ubuf, count, &copied);
+	retval = kfifo_from_user(fifo, (char __user *)ubuf, count, &copied);
 	if (retval == -1)
 		klog(KERN_WARNING, "kfifo_from_user failed\n");
 	else
 		retval = copied;
 
-	printk("Wrote: %d\n", retval);
+	printk("Wrote: %ld\n", retval);
 
 	dump_buffer("in_dev-end:in_buff:", in_buff);
 
@@ -324,7 +324,7 @@ static ssize_t shofer_write(struct file *filp, const char __user *ubuf,
 	return count;
 }
 
-static long control_ioctl (struct file *filp, unsigned int cmd, unsigned long arg)
+static long control_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	ssize_t retval = 0;
 	struct shofer_dev *shofer = filp->private_data;
@@ -332,25 +332,47 @@ static long control_ioctl (struct file *filp, unsigned int cmd, unsigned long ar
 	struct buffer *out_buff = shofer->out_buff;
 	struct kfifo *fifo_in = &in_buff->fifo;
 	struct kfifo *fifo_out = &out_buff->fifo;
-	char c;
 	int got;
+	char c;
 
 	if (!cmd)
 		return -EINVAL;
 
 	/* copy cmd bytes from in_buff to out_buff */
 	/* todo (similar to timer) */
-
-	// get locks on both buffers
 	spin_lock(&out_buff->key);
 	spin_lock(&in_buff->key);
 
-	dump_buffer("control-start:in_buff", in_buff);
-	dump_buffer("control-start:out_buff", out_buff);
+	dump_buffer("timer-start-ioctl:in_buff", in_buff);
+	dump_buffer("timer-start-ioctl:out_buff", out_buff);
 
-	memcpy(&out_buff, &in_buff, cmd);
-	printk("Copied %d bytes from in_buff to out_buff\n", cmd);
+	if (kfifo_len(fifo_in) > 0 && kfifo_avail(fifo_out) > 0)
+	{
+		int i;
+		for (i = 0; i < cmd; i++)
+		{
+			got = kfifo_get(fifo_in, &c);
+			if (got > 0)
+			{
+				got = kfifo_put(fifo_out, c);
+				if (got)
+					LOG("ioctl moved '%c' from in to out with timer", c);
+				else /* should't happen! */
+					klog(KERN_WARNING, "kfifo_put failed\n");
+			}
+			else
+			{ /* should't happen! */
+				klog(KERN_WARNING, "kfifo_get failed\n");
+			}
 
+		}
+	}
+	else
+	{
+		LOG("timer: nothing in input buffer");
+		// for test: put '#' in output buffer
+		got = kfifo_put(fifo_out, '#');
+	}
 
 	return retval;
 }
@@ -371,22 +393,26 @@ static void timer_function(struct timer_list *t)
 	dump_buffer("timer-start:in_buff", in_buff);
 	dump_buffer("timer-start:out_buff", out_buff);
 
-	if (kfifo_len(fifo_in) > 0 && kfifo_avail(fifo_out) > 0) {
+	if (kfifo_len(fifo_in) > 0 && kfifo_avail(fifo_out) > 0)
+	{
 		got = kfifo_get(fifo_in, &c);
-		if (got > 0) {
+		if (got > 0)
+		{
 			got = kfifo_put(fifo_out, c);
 			if (got)
 				LOG("timer moved '%c' from in to out", c);
 			else /* should't happen! */
 				klog(KERN_WARNING, "kfifo_put failed\n");
 		}
-		else { /* should't happen! */
+		else
+		{ /* should't happen! */
 			klog(KERN_WARNING, "kfifo_get failed\n");
 		}
 	}
-	else {
+	else
+	{
 		LOG("timer: nothing in input buffer");
-		//for test: put '#' in output buffer
+		// for test: put '#' in output buffer
 		got = kfifo_put(fifo_out, '#');
 	}
 
