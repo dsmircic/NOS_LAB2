@@ -356,7 +356,10 @@ static long control_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			{
 				got = kfifo_put(fifo_out, c);
 				if (got)
-					LOG("ioctl moved '%c' from in to out with timer", c);
+				{
+					printk("Moved %c from in_buff to out_buff\n", c);
+					retval = cmd;
+				}
 				else /* should't happen! */
 					klog(KERN_WARNING, "kfifo_put failed\n");
 			}
@@ -364,7 +367,6 @@ static long control_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			{ /* should't happen! */
 				klog(KERN_WARNING, "kfifo_get failed\n");
 			}
-
 		}
 	}
 	else
@@ -373,6 +375,12 @@ static long control_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		// for test: put '#' in output buffer
 		got = kfifo_put(fifo_out, '#');
 	}
+
+	dump_buffer("timer-end:in_buff", in_buff);
+	dump_buffer("timer-end:out_buff", out_buff);
+
+	spin_unlock(&in_buff->key);
+	spin_unlock(&out_buff->key);
 
 	return retval;
 }
