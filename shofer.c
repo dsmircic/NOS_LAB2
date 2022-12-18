@@ -299,24 +299,27 @@ static ssize_t shofer_write(struct file *filp, const char __user *ubuf,
 	/* todo (similar to read) */
 	ssize_t retval = 0;
 	struct shofer_dev *shofer = filp->private_data;
-	struct buffer *out_buff = shofer->out_buff;
-	struct kfifo *fifo = &out_buff->fifo;
+	struct buffer *in_buff = shofer->in_buff;
+	struct kfifo *fifo = &in_buff->fifo;
 	unsigned int copied;
 
-	spin_lock(&out_buff->key);
+	spin_lock(&in_buff->key);
 
-	dump_buffer("out_dev-end:out_buff:", out_buff);
+
+	dump_buffer("in_dev-end:in_buff:", in_buff);
 
 	// write to out_buff
 	retval = kfifo_from_user(fifo, (char __user *) ubuf, count, &copied);
-	if (retval)
+	if (retval == -1)
 		klog(KERN_WARNING, "kfifo_from_user failed\n");
 	else
 		retval = copied;
 
-	dump_buffer("out_dev-end:out_buff:", out_buff);
+	printk("Wrote: %d\n", retval);
 
-	spin_unlock(&out_buff->key);
+	dump_buffer("in_dev-end:in_buff:", in_buff);
+
+	spin_unlock(&in_buff->key);
 
 	return count;
 }
