@@ -343,8 +343,8 @@ static long control_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	spin_lock(&out_buff->key);
 	spin_lock(&in_buff->key);
 
-	dump_buffer("ioctl-start-ioctl:in_buff", in_buff);
-	dump_buffer("ioctl-start-ioctl:out_buff", out_buff);
+	dump_buffer("ioctl-start:in_buff", in_buff);
+	dump_buffer("ioctl-start:out_buff", out_buff);
 
 	if (kfifo_len(fifo_in) > 0 && kfifo_avail(fifo_out) > 0)
 	{
