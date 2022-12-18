@@ -343,8 +343,8 @@ static long control_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	spin_lock(&out_buff->key);
 	spin_lock(&in_buff->key);
 
-	dump_buffer("timer-start-ioctl:in_buff", in_buff);
-	dump_buffer("timer-start-ioctl:out_buff", out_buff);
+	dump_buffer("ioctl-start-ioctl:in_buff", in_buff);
+	dump_buffer("ioctl-start-ioctl:out_buff", out_buff);
 
 	if (kfifo_len(fifo_in) > 0 && kfifo_avail(fifo_out) > 0)
 	{
@@ -376,8 +376,8 @@ static long control_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		got = kfifo_put(fifo_out, '#');
 	}
 
-	dump_buffer("timer-end:in_buff", in_buff);
-	dump_buffer("timer-end:out_buff", out_buff);
+	dump_buffer("ioctl-end:in_buff", in_buff);
+	dump_buffer("ioctl-end:out_buff", out_buff);
 
 	spin_unlock(&in_buff->key);
 	spin_unlock(&out_buff->key);
