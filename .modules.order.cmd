@@ -1,0 +1,1 @@
+cmd_/home/student/Desktop/NOS/zad1/shofer/my_pipe/modules.order := {   echo /home/student/Desktop/NOS/zad1/shofer/my_pipe/shofer.ko; :; } | awk '!x[$$0]++' - > /home/student/Desktop/NOS/zad1/shofer/my_pipe/modules.order

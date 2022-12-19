@@ -1,0 +1,1 @@
+cmd_/home/student/Desktop/NOS/zad1/shofer/my_pipe/shofer.ko := ld -r  -m elf_x86_64 -z noexecstack   --build-id=sha1  -T scripts/module.lds -o /home/student/Desktop/NOS/zad1/shofer/my_pipe/shofer.ko /home/student/Desktop/NOS/zad1/shofer/my_pipe/shofer.o /home/student/Desktop/NOS/zad1/shofer/my_pipe/shofer.mod.o;  true
