@@ -1,0 +1,7 @@
+#!/bin/sh
+module="shofer"
+message_queue="message_queue"
+
+/sbin/rmmod $module || exit 1
+
+rm -f /dev/${message_queue}

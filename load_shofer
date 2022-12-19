@@ -1,0 +1,12 @@
+#!/bin/sh
+module="shofer"
+message_queue="message_queue"
+mode="666"
+
+/sbin/insmod ./$module.ko $* || exit 1
+
+major=$(awk "\$2==\"$module\" {print \$1}" /proc/devices)
+
+rm -f /dev/${message_queue}
+mknod /dev/${message_queue} c $major 0
+chmod $mode /dev/${message_queue}
